@@ -1,5 +1,7 @@
 # RaspberryPi 5 for IoT project
 
+For application usage see [app.md](./app.md)
+
 ## Note for later research
 
 Maybe use Raspberry OS Lite (without desktop environment) for better efficiency, but will it effect something else?
@@ -49,31 +51,6 @@ echo "export PATH=\"\$PATH:/opt/nvim-linux-arm64/bin\"" | tee -a ~/.zshrc
 # LazyVim for neovim plugins
 git clone https://github.com/LazyVim/starter ~/.config/nvim
 rm -rf ~/.config/nvim/.git
-```
-
-## Object Detection
-
-### Useful documentations
-
-<https://docs.ultralytics.com/guides/raspberry-pi>  
-<https://docs.ultralytics.com/modes/predict>
-
-### Export model to NCNN format
-
-See [YOLO export usage](https://docs.ultralytics.com/modes/export) to optionally quantize the model.
-
-```sh
-# Export a YOLO26n PyTorch model to NCNN format
-yolo export model=model/yolo26n.pt format=ncnn # creates 'yolo26n_ncnn_model'
-
-# Run inference with the exported model
-yolo predict model='model/yolo26n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
-```
-
-### Test the application
-
-```sh
-uv run src/app.py model/yolo26n_ncnn_model pi-camera
 ```
 
 ## MQTT Setup

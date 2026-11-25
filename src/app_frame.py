@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from multiprocessing import Queue
 
-from picamera2 import Picamera2
-
 import cv2
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
@@ -44,10 +42,15 @@ def generate_frame_from_camera(
 
 def generate_frame_from_pi_camera(
     model: YOLO,
-    picam2: Picamera2,
+    picam2,
     mqtt_q: Queue[MQTT_DATA] | None,
     file_q: Queue[FILE_DATA] | None,
 ):
+    # TODO: i do this to avoid libcamera module not found on laptop testing
+    from picamera2 import Picamera2
+
+    if not isinstance(picam2, Picamera2):
+        raise TypeError()
 
     while picam2.is_open:
         frame = picam2.capture_array()

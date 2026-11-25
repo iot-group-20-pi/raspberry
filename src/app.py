@@ -5,11 +5,6 @@ from typing import Literal
 
 from flask import Flask, Response, render_template
 
-from app_frame import (
-    generate_frame_from_camera,
-    generate_frame_from_pi_camera,
-    generate_frame_from_video,
-)
 from file import FILE_DATA, file_thread
 from mqtt_publish import MQTT_DATA, publisher_thread
 
@@ -31,12 +26,18 @@ def app_thread(
         model = get_model(model_path)
 
         if frame == "camera":
+            from app_frame import generate_frame_from_camera
+
             generator = generate_frame_from_camera(model, mqtt_q, file_q)
         elif frame == "pi-camera":
+            from app_frame import generate_frame_from_pi_camera
+
             generator = generate_frame_from_pi_camera(
                 model, app.config["picam2"], mqtt_q, file_q
             )
         else:
+            from app_frame import generate_frame_from_video
+
             generator = generate_frame_from_video(model, mqtt_q, file_q)
 
         return Response(generator, mimetype="multipart/x-mixed-replace; boundary=frame")
