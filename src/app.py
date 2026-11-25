@@ -5,14 +5,18 @@ from typing import Literal
 
 from flask import Flask, Response, render_template
 
-from app_frame import generate_frame_from_camera, generate_frame_from_video
+from app_frame import (
+    generate_frame_from_camera,
+    generate_frame_from_pi_camera,
+    generate_frame_from_video,
+)
 from file import FILE_DATA, file_thread
 from mqtt_publish import MQTT_DATA, publisher_thread
 
 
 def app_thread(
     model_path: str,
-    frame: Literal["camera", "video"] = "video",
+    frame: Literal["camera", "pi-camera", "video"] = "video",
     mqtt_q: Queue[MQTT_DATA] | None = None,
     file_q: Queue[FILE_DATA] | None = None,
 ):
@@ -26,17 +30,21 @@ def app_thread(
     def video_feed():
         model = get_model(model_path)
 
-        if frame == "video":
-            return Response(
-                generate_frame_from_video(model, mqtt_q, file_q),
-                mimetype="multipart/x-mixed-replace; boundary=frame",
+        if frame == "camera":
+            generator = generate_frame_from_camera(model, mqtt_q, file_q)
+        elif frame == "pi-camera":
+            generator = generate_frame_from_pi_camera(
+                model, app.config["picam2"], mqtt_q, file_q
             )
+        else:
+            generator = generate_frame_from_video(model, mqtt_q, file_q)
 
-        return Response(
-            generate_frame_from_camera(model, mqtt_q, file_q),
-            mimetype="multipart/x-mixed-replace; boundary=frame",
-        )
+        return Response(generator, mimetype="multipart/x-mixed-replace; boundary=frame")
 
+    if frame == "pi-camera":
+        from utils.camera import start_pi_camera
+
+        app.config["picam2"] = start_pi_camera()
     app.run(host="0.0.0.0", port=5000)
 
 
@@ -47,7 +55,7 @@ if __name__ == "__main__":
     parser.add_argument("model_path", help="Path to the YOLO model")
     parser.add_argument(
         "frame",
-        choices=["camera", "video"],
+        choices=["camera", "pi-camera", "video"],
         help="Frame to generate from (camera or video)",
     )
     parser.add_argument("--mqtt", default=False, action=argparse.BooleanOptionalAction)

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from multiprocessing import Queue
 
+from picamera2 import Picamera2
+
 import cv2
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
@@ -20,6 +22,35 @@ def generate_frame_from_camera(
         success, frame = cap.read()
         if not success:
             continue
+
+        for result in model.predict(frame, verbose=False):
+            if not isinstance(result, Results):
+                raise TypeError(
+                    "The model result type mismatch, predict parameters may be wrong"
+                )
+
+            result_pipeline(result, mqtt_q, file_q)
+
+            success, annotated_img = cv2.imencode(".jpg", result.plot())
+            if not success:
+                continue
+
+            yield (
+                b"--frame\r\nContent-Type: image/jpeg\r\n\r\n"
+                + annotated_img.tobytes()
+                + b"\r\n"
+            )
+
+
+def generate_frame_from_pi_camera(
+    model: YOLO,
+    picam2: Picamera2,
+    mqtt_q: Queue[MQTT_DATA] | None,
+    file_q: Queue[FILE_DATA] | None,
+):
+
+    while picam2.is_open:
+        frame = picam2.capture_array()
 
         for result in model.predict(frame, verbose=False):
             if not isinstance(result, Results):

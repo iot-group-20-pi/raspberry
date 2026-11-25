@@ -64,16 +64,16 @@ See [YOLO export usage](https://docs.ultralytics.com/modes/export) to optionally
 
 ```sh
 # Export a YOLO26n PyTorch model to NCNN format
-yolo export model=yolo26n.pt format=ncnn # creates 'yolo26n_ncnn_model'
+yolo export model=model/yolo26n.pt format=ncnn # creates 'yolo26n_ncnn_model'
 
 # Run inference with the exported model
-yolo predict model='yolo26n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
+yolo predict model='model/yolo26n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
 ```
 
 ### Test the application
 
 ```sh
-uv run src/app.py model/yolo26n_ncnn_model
+uv run src/app.py model/yolo26n_ncnn_model pi-camera
 ```
 
 ## MQTT Setup
